@@ -2,5 +2,5 @@
 
 /aesmd.sh
 
-gramine-sgx-get-token --output kotlin.token --sig kotlin.sig
-gramine-sgx kotlin
+gramine-sgx-get-token --output demo.token --sig demo.sig
+gramine-sgx demo

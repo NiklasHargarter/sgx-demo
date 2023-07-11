@@ -14,6 +14,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
 
 RUN rm -vf /var/lib/apt/lists/* \
+    && apt-get update \
     && apt-get install build-essential
 
 COPY --from=builder /enclave.jar /app/

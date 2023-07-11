@@ -11,7 +11,7 @@ FROM enclaive/gramine-os:jammy-33576d39
 
 RUN apt-get update \
     && apt-get install -y libprotobuf-c1 openjdk-17-jre-headless \
-    && apt-get install build-essential \
+    && apt-get install build-essential -y \
     && rm -rf /var/lib/apt/lists/* \
 
 

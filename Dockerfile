@@ -17,6 +17,7 @@ COPY --from=builder /enclave.jar /app/
 COPY ./src/demo/src/main/resources/demo-file /plaintext/
 COPY ./demo.manifest.template /app/
 COPY ./entrypoint.sh /app/
+COPY ./ra-tls-secret-prov /ra-tls-secret-prov
 
 RUN cd ra-tls-secret-prov \
     && make app dcap RA_TYPE=dcap

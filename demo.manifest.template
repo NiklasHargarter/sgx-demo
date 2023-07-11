@@ -17,6 +17,11 @@ sgx.trusted_files = [
   "file:/app/enclave.jar",
   "file:/app/jvm_args.txt",
   "file:/app/demo-file",
+  "file:/etc/host.conf",
+  "file:/etc/hosts",
+  "file:/etc/nsswitch.conf",
+  "file:/etc/resolv.conf",
+  "file:ssl/ca.crt",
 ]
 
 fs.mounts = [
@@ -25,4 +30,13 @@ fs.mounts = [
   { path = "/usr/{{ arch_libdir }}",                    uri = "file:/usr/{{ arch_libdir }}" },
   { path = "/usr/lib/jvm/java-17-openjdk-amd64",        uri = "file:/usr/lib/jvm/java-17-openjdk-amd64" },
   { path = "/app",                                      uri = "file:/app" },
+  { path = "/encrypted/demo-file",                      uri = "file:/encrypted/demo-file },
 ]
+
+sgx.remote_attestation = "dcap"
+
+loader.env.LD_PRELOAD = "libsecret_prov_attest.so"
+loader.env.SECRET_PROVISION_CONSTRUCTOR = "1"
+loader.env.SECRET_PROVISION_SET_KEY = "default"
+loader.env.SECRET_PROVISION_CA_CHAIN_PATH = "ssl/ca.crt"
+loader.env.SECRET_PROVISION_SERVERS = "localhost:4433"

@@ -14,9 +14,23 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /enclave.jar /app/
-COPY ./src/demo/src/main/resources/demo-file /app/
+COPY ./src/demo/src/main/resources/demo-file /plaintext/
 COPY ./demo.manifest.template /app/
 COPY ./entrypoint.sh /app/
+
+RUN git clone --depth 1 --branch v1.2 https://github.com/gramineproject/gramine.git \
+    && cd gramine/CI-Examples/ra-tls-secret-prov \
+    && make app dcap RA_TYPE=dcap
+
+RUN mkdir files \
+    && dd if=/dev/urandom of=files/wrap_key bs=16 count=1
+
+RUN mkdir encrypted \
+    && gramine-sgx-pf-crypt encrypt -w files/wrap_key -i plaintext/demo-file -o encrypted/demo-file
+
+RUN cp gramine/CI-Examples/ra-tls-secret-prov/secret_prov_pf/server_dcap . \
+    && cp -R gramine/CI-Examples/ra-tls-secret-prov/ssl ./ \
+    && ./server_dcap &
 
 WORKDIR /app
 

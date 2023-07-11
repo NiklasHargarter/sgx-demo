@@ -11,14 +11,6 @@ FROM gramineproject/gramine:latest
 
 RUN apt-get update \
     && apt-get install -y libprotobuf-c1 openjdk-17-jre-headless \
-    && apt-get -y install make \
-    && apt-get -y install git
-
-RUN curl -fsSLo /usr/share/keyrings/microsoft.asc https://packages.microsoft.com/keys/microsoft.asc \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.asc] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | tee /etc/apt/sources.list.d/msprod.list \
-    && apt update \
-    && apt install -y az-dcap-client\
-    && /restart_aesm.sh
 
 RUN rm -rf /var/lib/apt/lists/* 
 
@@ -28,9 +20,6 @@ COPY ./src/demo/src/main/resources/demo-file /plaintext/
 COPY ./demo.manifest.template /app/
 COPY ./entrypoint.sh /app/
 
-RUN git clone --depth 1 --branch v1.2 https://github.com/gramineproject/gramine.git \
-    && cd gramine/CI-Examples/ra-tls-secret-prov \
-    && make app dcap RA_TYPE=dcap
 
 RUN mkdir files \
     && dd if=/dev/urandom of=files/wrap_key bs=16 count=1
@@ -38,16 +27,13 @@ RUN mkdir files \
 RUN mkdir encrypted \
     && gramine-sgx-pf-crypt encrypt -w files/wrap_key -i plaintext/demo-file -o encrypted/demo-file
 
-RUN cp gramine/CI-Examples/ra-tls-secret-prov/secret_prov_pf/server_dcap . \
-    && cp -R gramine/CI-Examples/ra-tls-secret-prov/ssl ./ \
-    && ./server_dcap &
 
 WORKDIR /app
 
 RUN gramine-argv-serializer "/usr/lib/jvm/java-17-openjdk-amd64/bin/java" "-XX:CompressedClassSpaceSize=8m" "-XX:ReservedCodeCacheSize=8m" "-Xmx8m" "-Xms8m" "-jar" "/app/enclave.jar" "/encrypted/demo-file"> jvm_args.txt
 
 RUN gramine-sgx-gen-private-key \
-    && gramine-manifest -Dlog_level=error -Darch_libdir=/lib/x86_64-linux-gnu demo.manifest.template demo.manifest \
+    && gramine-manifest -Dlog_level=error -Dencrypt_key=$(cat files/wrap_key) -Darch_libdir=/lib/x86_64-linux-gnu demo.manifest.template demo.manifest \
     && gramine-sgx-sign --manifest demo.manifest --output demo.manifest.sgx
 
 ENTRYPOINT ["sh", "entrypoint.sh"]

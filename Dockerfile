@@ -12,16 +12,17 @@ FROM enclaive/gramine-os:jammy-33576d39
 RUN apt-get update \
     && apt-get install -y libprotobuf-c1 openjdk-17-jre-headless \
     && apt-get -y install make \
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get -y install git \
+    && rm -rf /var/lib/apt/lists/* 
 
 
 COPY --from=builder /enclave.jar /app/
 COPY ./src/demo/src/main/resources/demo-file /plaintext/
 COPY ./demo.manifest.template /app/
 COPY ./entrypoint.sh /app/
-COPY ./ra-tls-secret-prov /ra-tls-secret-prov
 
-RUN cd ra-tls-secret-prov \
+RUN git clone --depth 1 --branch v1.2 https://github.com/gramineproject/gramine.git \
+    && cd gramine/CI-Examples/ra-tls-secret-prov \
     && make app dcap RA_TYPE=dcap
 
 RUN mkdir files \
@@ -30,13 +31,13 @@ RUN mkdir files \
 RUN mkdir encrypted \
     && gramine-sgx-pf-crypt encrypt -w files/wrap_key -i plaintext/demo-file -o encrypted/demo-file
 
-RUN cp ra-tls-secret-prov/secret_prov_pf/server_dcap . \
-    && cp -R ra-tls-secret-prov/ssl ./ \
+RUN cp gramine/CI-Examples/ra-tls-secret-prov/secret_prov_pf/server_dcap . \
+    && cp -R gramine/CI-Examples/ra-tls-secret-prov/ssl ./ \
     && ./server_dcap &
 
 WORKDIR /app
 
-RUN gramine-argv-serializer "/usr/lib/jvm/java-17-openjdk-amd64/bin/java" "-XX:CompressedClassSpaceSize=8m" "-XX:ReservedCodeCacheSize=8m" "-Xmx8m" "-Xms8m" "-jar" "/app/enclave.jar" "/app/demo-file"> jvm_args.txt
+RUN gramine-argv-serializer "/usr/lib/jvm/java-17-openjdk-amd64/bin/java" "-XX:CompressedClassSpaceSize=8m" "-XX:ReservedCodeCacheSize=8m" "-Xmx8m" "-Xms8m" "-jar" "/app/enclave.jar" "/encrypted/demo-file"> jvm_args.txt
 
 RUN gramine-sgx-gen-private-key \
     && gramine-manifest -Dlog_level=error -Darch_libdir=/lib/x86_64-linux-gnu demo.manifest.template demo.manifest \

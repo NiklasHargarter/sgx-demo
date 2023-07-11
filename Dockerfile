@@ -7,13 +7,20 @@ WORKDIR /home
 RUN mvn package && cp /home/target/*.jar /enclave.jar
 
 # Enclave image build stage
-FROM enclaive/gramine-os:jammy-33576d39
+FROM gramineproject/gramine:latest
 
 RUN apt-get update \
     && apt-get install -y libprotobuf-c1 openjdk-17-jre-headless \
     && apt-get -y install make \
-    && apt-get -y install git \
-    && rm -rf /var/lib/apt/lists/* 
+    && apt-get -y install git
+
+RUN curl -fsSLo /usr/share/keyrings/microsoft.asc https://packages.microsoft.com/keys/microsoft.asc \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.asc] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | tee /etc/apt/sources.list.d/msprod.list \
+    && apt update \
+    && apt install -y az-dcap-client\
+    && /restart_aesm.sh
+
+RUN rm -rf /var/lib/apt/lists/* 
 
 
 COPY --from=builder /enclave.jar /app/

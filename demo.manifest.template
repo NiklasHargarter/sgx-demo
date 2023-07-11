@@ -16,7 +16,7 @@ sgx.trusted_files = [
   "file:/usr/lib/jvm/java-17-openjdk-amd64/",
   "file:/app/enclave.jar",
   "file:/app/jvm_args.txt",
-  "file:/app/demo-file",
+  "file:/plaintext/demo-file",
 
 ]
 
@@ -26,7 +26,8 @@ fs.mounts = [
   { path = "/usr/{{ arch_libdir }}",                    uri = "file:/usr/{{ arch_libdir }}" },
   { path = "/usr/lib/jvm/java-17-openjdk-amd64",        uri = "file:/usr/lib/jvm/java-17-openjdk-amd64" },
   { path = "/app",                                      uri = "file:/app" },
-  { type = "encrypted", path = "/encrypted/demo-file", uri = "file:/encrypted/demo-file, key_name = "unsafe_key" },
+  { path = "/plaintext", uri = "file:/plaintext"},
+  { path = "/encrypted/demo-file-enc.txt", uri = "file:/encrypted/demo-file-enc.txt",type = "encrypted",  key_name = "unsafe_key" },
 ]
 
-fs.insecure__keys.unsafe_key = "{{ encrypt_key }}"
+fs.insecure__keys.unsafe_key = "{{enc_key}}"

@@ -11,11 +11,9 @@ FROM enclaive/gramine-os:jammy-33576d39
 
 RUN apt-get update \
     && apt-get install -y libprotobuf-c1 openjdk-17-jre-headless \
+    && apt-get install build-essential \
     && rm -rf /var/lib/apt/lists/* \
 
-RUN rm -vf /var/lib/apt/lists/* \
-    && apt-get update \
-    && apt-get install build-essential
 
 COPY --from=builder /enclave.jar /app/
 COPY ./src/demo/src/main/resources/demo-file /plaintext/

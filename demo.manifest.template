@@ -6,7 +6,7 @@ loader.argv_src_file = "file:/app/jvm_args.txt"
 loader.env.LD_LIBRARY_PATH = "/lib:{{ arch_libdir }}"
 
 sgx.debug = false
-sgx.thread_num = 16
+sgx.max_threads = 16
 sgx.enclave_size = "1G"
 
 sgx.trusted_files = [

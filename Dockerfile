@@ -29,7 +29,7 @@ RUN mkdir encrypted \
 
 WORKDIR /app
 
-RUN gramine-argv-serializer "/usr/lib/jvm/java-17-openjdk-amd64/bin/java" "-XX:CompressedClassSpaceSize=8m" "-XX:ReservedCodeCacheSize=8m" "-Xmx8m" "-Xms8m" "-jar" "/app/enclave.jar" "/encrypted/demo-file-enc"> jvm_args.txt
+RUN gramine-argv-serializer "/usr/lib/jvm/java-17-openjdk-amd64/bin/java" "-XX:CompressedClassSpaceSize=8m" "-XX:ReservedCodeCacheSize=8m" "-Xmx8m" "-Xms8m" "-jar" "/app/enclave.jar" "/encrypted/demo-file-enc.txt"> jvm_args.txt
 
 RUN gramine-sgx-gen-private-key \
     && gramine-manifest -Dlog_level=error -Denc_key=$(xxd -ps /files/wrap_key) -Darch_libdir=/lib/x86_64-linux-gnu demo.manifest.template demo.manifest \
